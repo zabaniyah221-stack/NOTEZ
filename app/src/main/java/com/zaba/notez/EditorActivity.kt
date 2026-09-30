@@ -43,6 +43,7 @@ class EditorActivity : AppCompatActivity() {
 
     private lateinit var titleEdit: EditText
     private lateinit var titleView: TextView
+    private lateinit var bodyEditContainer: View
     private lateinit var bodyEdit: EditText
     private lateinit var bodyWebView: WebView
     private lateinit var bodyEmptyView: TextView
@@ -83,6 +84,7 @@ class EditorActivity : AppCompatActivity() {
 
         titleEdit = findViewById(R.id.edit_title)
         titleView = findViewById(R.id.view_title)
+        bodyEditContainer = findViewById(R.id.edit_body_scroll)
         bodyEdit = findViewById(R.id.edit_body)
         bodyWebView = findViewById(R.id.view_body_web)
         bodyEmptyView = findViewById(R.id.view_body_empty)
@@ -147,7 +149,7 @@ class EditorActivity : AppCompatActivity() {
         val hasContent = currentContent.isNotBlank()
         titleEdit.visibility = if (editing) View.VISIBLE else View.GONE
         titleView.visibility = if (editing) View.GONE else View.VISIBLE
-        bodyEdit.visibility = if (editing) View.VISIBLE else View.GONE
+        bodyEditContainer.visibility = if (editing) View.VISIBLE else View.GONE
         bodyWebView.visibility = if (!editing && hasContent) View.VISIBLE else View.GONE
         bodyEmptyView.visibility = if (!editing && !hasContent) View.VISIBLE else View.GONE
         counter.visibility = if (editing) View.VISIBLE else View.GONE

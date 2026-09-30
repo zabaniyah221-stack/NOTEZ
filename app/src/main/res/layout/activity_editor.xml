@@ -62,17 +62,26 @@
             android:layout_height="0dp"
             android:layout_weight="1">
 
-            <EditText
-                android:id="@+id/edit_body"
+            <ScrollView
+                android:id="@+id/edit_body_scroll"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:hint="Tulis ide sebelum lupa..."
-                android:textColor="?attr/colorOnSurface"
-                android:textColorHint="?attr/colorOnSurfaceVariant"
-                android:gravity="top"
-                android:inputType="textMultiLine|textNoSuggestions"
+                android:fillViewport="true"
                 android:scrollbars="vertical"
-                android:background="@null" />
+                android:overScrollMode="ifContentScrolls">
+
+                <EditText
+                    android:id="@+id/edit_body"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="Tulis ide sebelum lupa..."
+                    android:textColor="?attr/colorOnSurface"
+                    android:textColorHint="?attr/colorOnSurfaceVariant"
+                    android:gravity="top"
+                    android:inputType="textMultiLine|textNoSuggestions"
+                    android:scrollbars="none"
+                    android:background="@null" />
+            </ScrollView>
 
             <android.webkit.WebView
                 android:id="@+id/view_body_web"
