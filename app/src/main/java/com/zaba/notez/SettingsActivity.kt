@@ -108,12 +108,44 @@ class SettingsActivity : AppCompatActivity() {
         findViewById<TextView>(R.id.settings_row_privacy).setOnClickListener { showPrivacyDialog() }
         findViewById<TextView>(R.id.settings_row_clear_remote_image_cache).setOnClickListener { confirmClearRemoteImageCache() }
 
+                setupExpandableSections()
         updateSummaries()
     }
 
     override fun onResume() {
         super.onResume()
         updateSummaries()
+    }
+
+
+    private fun setupExpandableSections() {
+        val headerApp = findViewById<View>(R.id.section_header_appearance)
+        val contentApp = findViewById<View>(R.id.section_content_appearance)
+        val indicatorApp = findViewById<TextView>(R.id.section_indicator_appearance)
+
+        val headerData = findViewById<View>(R.id.section_header_data)
+        val contentData = findViewById<View>(R.id.section_content_data)
+        val indicatorData = findViewById<TextView>(R.id.section_indicator_data)
+
+        val headerMain = findViewById<View>(R.id.section_header_app)
+        val contentMain = findViewById<View>(R.id.section_content_app)
+        val indicatorMain = findViewById<TextView>(R.id.section_indicator_app)
+
+        headerApp.setOnClickListener {
+            toggleSection(contentApp, indicatorApp)
+        }
+        headerData.setOnClickListener {
+            toggleSection(contentData, indicatorData)
+        }
+        headerMain.setOnClickListener {
+            toggleSection(contentMain, indicatorMain)
+        }
+    }
+
+    private fun toggleSection(contentView: View, indicatorView: TextView) {
+        val isVisible = contentView.visibility == View.VISIBLE
+        contentView.visibility = if (isVisible) View.GONE else View.VISIBLE
+        indicatorView.text = if (isVisible) "▼" else "▲"
     }
 
     private fun updateSummaries() {

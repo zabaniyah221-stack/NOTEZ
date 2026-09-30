@@ -40,9 +40,10 @@ class MarkdownPreviewRenderer(
     private val activity: Activity,
     private val webView: WebView
 ) {
-    private val markdownItJs: String by lazy {
-        activity.assets.open("markdown/markdown-it.umd.min.js").bufferedReader().use { it.readText() }
-    }
+    private val markdownItJs: String
+        get() = cachedMarkdownItJs ?: synchronized(MarkdownPreviewRenderer::class.java) {
+            cachedMarkdownItJs ?: activity.assets.open("markdown/markdown-it.umd.min.js").bufferedReader().use { it.readText() }.also { cachedMarkdownItJs = it }
+        }
     private val remoteImageCache = RemoteImageCache(activity)
     private val imageExecutor: ExecutorService = Executors.newSingleThreadExecutor()
     @Volatile private var destroyed = false
@@ -52,15 +53,25 @@ class MarkdownPreviewRenderer(
         configureWebView()
     }
 
+    private var isLoaded = false
+
     fun render(markdown: String) {
         currentMarkdown = markdown
-        webView.loadDataWithBaseURL(
-            NOTEZ_BASE_URL,
-            buildHtml(markdown),
-            "text/html",
-            "UTF-8",
-            null
-        )
+        if (isLoaded) {
+            val jsonMarkdown = JSONObject.quote(markdown)
+            val jsonBase = JSONObject.quote(githubRawBase(markdown))
+            val jsonCached = cachedImagesJson(markdown)
+            val js = "if (window.renderNotez) { window.renderNotez($jsonMarkdown, $jsonBase, $jsonCached); }"
+            webView.evaluateJavascript(js, null)
+        } else {
+            webView.loadDataWithBaseURL(
+                NOTEZ_BASE_URL,
+                buildHtml(markdown),
+                "text/html",
+                "UTF-8",
+                null
+            )
+        }
     }
 
     fun destroy() {
@@ -107,6 +118,13 @@ class MarkdownPreviewRenderer(
                 return openExternalOrBlock(uri)
             }
 
+            override fun onPageFinished(view: WebView?, url: String?) {
+                super.onPageFinished(view, url)
+                if (!isLoaded && url != "about:blank") {
+                    isLoaded = true
+                }
+            }
+
             override fun shouldInterceptRequest(
                 view: WebView,
                 request: WebResourceRequest
@@ -124,7 +142,7 @@ class MarkdownPreviewRenderer(
 
     private fun buildHtml(markdown: String): String {
         val colors = PreviewColors.from(activity)
-        val markdownJson = JSONObject.quote(markdown)
+        // markdown quote moved inside buildHtml
         val githubRawBaseJson = JSONObject.quote(githubRawBase(markdown))
         val cachedImagesJson = cachedImagesJson(markdown)
         return """
@@ -142,7 +160,7 @@ class MarkdownPreviewRenderer(
                 (function () {
                   'use strict';
 
-                  var source = $markdownJson;
+                  function doRender(source, githubRawBase, cachedImages) {
                   var githubRawBase = $githubRawBaseJson;
                   var cachedImages = $cachedImagesJson;
                   var safeExternalLink = /^(https?:|mailto:|tel:)/i;
@@ -1710,6 +1728,7 @@ class MarkdownPreviewRenderer(
     }
 
     private companion object {
+        @Volatile private var cachedMarkdownItJs: String? = null
         private const val NOTEZ_HOST = "notez.local"
         private const val NOTEZ_BASE_URL = "https://notez.local/"
         private const val IMAGE_LOAD_SCHEME = "notez-image"
